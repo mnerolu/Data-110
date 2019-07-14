@@ -1,0 +1,157 @@
+---
+title: "Lab Assignment Unit 1"
+author: "Meenakshi Nerolu"
+date: July 11, 2019
+output:
+  html_document:
+    toc: yes
+    toc_depth: '2'
+  pdf_document:
+    keep_tex: yes
+    toc: yes
+    toc_depth: 2
+geometry: right=2.5in
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message=FALSE, warning = FALSE)
+```
+
+# Heatmap 
+
+**Heat map for Basketball 2008 Data (https://flowingdata.com/)**
+
+A heat map is a graphical representation of data where the individual values contained in a matrix are represented as colors. Colors correspond to the level of the measurement. 
+
+To analyze the data first we will load data using  ```read.csv()```.
+
+```{r}
+nba <- read.csv("http://datasets.flowingdata.com/ppg2008.csv", sep=",")
+```
+
+### Sort Data
+
+Sort the data from least to greatest as follows:
+
+```{r}
+nba <- nba[order(nba$PTS),]
+```
+
+### Prepare Data
+
+To name the rows by player name instead of row number, the following code is used: 
+
+```{r}
+row.names(nba) <- nba$Name
+```
+
+The following code is used to get rid of first column:
+
+```{r}
+nba <- nba[,2:20]
+```
+
+### Prepare data, again
+
+The data was loaded into a data frame, but it has to be a data matrix to make your heatmap. 
+
+```{r}
+nba_matrix <- data.matrix(nba)
+```
+
+## Make a Heatmap
+
+The heatmap is built by using the following code:
+
+```{r out.width = '50%',fig.align="center"}
+nba_heatmap <- heatmap(nba_matrix, Rowv=NA, Colv=NA, col = cm.colors(256), scale="column", margins=c(5,10))
+```
+
+## Color Selection
+
+```{r out.width = '50%',fig.align="center"}
+nba_heatmap <- heatmap(nba_matrix, Rowv=NA, Colv=NA, col = heat.colors(256), scale="column", margins=c(5,10))
+```
+
+## RColorBrewer
+
+*RColorBrewer* is an ```R``` package that allows users to create colourful graphs with pre-made color palettes that visualize data in a clear and distinguishable manner. 
+
+```{r out.width = '50%',fig.align="center"}
+#install.packages("RColorBrewer")
+library("RColorBrewer")
+#display all colour schemes
+#display.brewer.all()
+heatmap(nba_matrix,Rowv=NA, Colv=NA, col=brewer.pal(9,"Blues"),scale="column", margins=c(5,10))
+heatmap(nba_matrix,Rowv=NA, Colv=NA, col=brewer.pal(9,"Greens"),scale="column", margins=c(5,10))
+```
+
+
+# Treemap
+
+In information visualization and computing, treemapping is a method for displaying hierarchical data using nested figures, usually rectangles.
+
+## Read and load the required package
+
+```{r}
+data <- read.csv("http://datasets.flowingdata.com/post-data.txt")
+#install.packages("portfolio")
+library(portfolio)
+```
+
+## Make the Treemap
+
+```{r out.width = '50%',fig.align="center"}
+map.market(id=data$id, area=data$views, group=data$category, color=data$comments, main="FlowingData Map")
+```
+
+```{r out.width = '50%',fig.align="center"}
+library(treemap)
+library(RColorBrewer)
+treemap(data, index="category", vSize="views",  
+        vColor="comments", mapping=c(-10, 10, 30),  type="value", palette="RdYlGn")
+
+```
+
+# Stream Graph
+
+A streamgraph, or stream graph, is a type of stacked area graph which is displaced around a central axis, resulting in a flowing, organic shape.
+
+### Installation
+
+```{r}
+devtools::install_github("hrbrmstr/streamgraph")
+```
+
+## Making a Streamgraph
+
+```{r out.width = '50%',fig.align="center" }
+library(dplyr)
+library(babynames)
+library(streamgraph)
+
+babynames %>%
+  filter(grepl("^Kr", name)) %>%
+  group_by(year, name) %>%
+  tally(wt=n) %>%
+  streamgraph("name", "n", "year")
+```
+
+```{r out.width = '50%',fig.align="center"}
+babynames %>%
+  filter(grepl("^I", name)) %>%
+  group_by(year, name) %>%
+  tally(wt=n) %>%
+  streamgraph("name", "n", "year", offset="zero", interpolate="linear") %>%
+  sg_legend(show=TRUE, label="I- names: ")
+```
+
+```{r out.width = '50%',fig.align="center"}
+babynames %>%
+  filter(grepl("^I", name)) %>%
+  group_by(year, name) %>%
+  tally(wt=n) %>%
+  streamgraph("name", "n", "year", interpolate="step", offset="silhouette") %>%
+  sg_legend(show=TRUE, label="I- names: ")
+```
