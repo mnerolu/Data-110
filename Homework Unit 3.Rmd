@@ -1,0 +1,69 @@
+---
+title: "Unit 3 Homework Assignment"
+author: "Meenakshi Nerolu"
+date: "July 27, 2019"
+output:
+  html_document:
+    toc: yes
+    toc_depth: '2'
+  pdf_document:
+    keep_tex: yes
+    toc: yes
+    toc_depth: 2
+  word_document:
+    toc: yes
+    toc_depth: '2'
+geometry: right=2.5in
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message=FALSE, warning = FALSE)
+```
+
+## Usage of the pakage ```dplyr``` and ```ggplot2``` to process data and draw the charts from the ```nations``` dataset.
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(plotly)
+library("RColorBrewer")
+```
+
+```{r}
+nations <- read.csv(file = "nations.csv",TRUE, sep = ",", na.strings = TRUE)
+```
+
+```{r}
+chart <- mutate(nations, GDP_mutate = ((gdp_percap*population)/1000000000000))
+#chart
+chart1 <- filter(chart, country == "China" | country == "Germany" | country == "Japan" | country == "United States")
+```
+
+```{r out.width = '50%',fig.align="center"}
+g1<-ggplot(chart1, aes(year, GDP_mutate, color = country))
+g1+
+ylab("GDP ($trillion)")+
+theme_minimal(base_size = 12)+
+coord_cartesian(xlim = c(1990, 2015))+
+ggtitle("China's Rise to Become the Largest Economy")+
+geom_point()+
+geom_line()+
+scale_color_brewer(palette = "Set1")
+```
+
+```{r}
+chart2 <- chart %>% group_by(region, year) %>% summarize(GDP_mutate=sum(GDP_mutate, na.rm = TRUE))
+```
+
+```{r  out.width = '50%',fig.align="center"}
+g2 <- ggplot(chart2, aes(year,GDP_mutate))
+g2+ 
+xlab("year") + ylab("GDP ($trillion)")+
+theme_minimal(base_size = 12)+
+scale_fill_brewer(palette = "Set2")+
+coord_cartesian(xlim = c(1990, 2015))+
+ggtitle("GDP by World Bank Region")+
+geom_area(colour="white",aes(fill = region))+
+scale_fill_brewer(palette = "Set2")
+```
+
