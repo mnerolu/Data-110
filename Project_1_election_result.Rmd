@@ -1,0 +1,399 @@
+---
+title: "Project1: 2019 Indian General Election"
+author: "Meenakshi Nerolu"
+date: "July 28, 2019"
+output:
+  html_document:
+    toc: yes
+    toc_depth: '2'
+    self_contained: TRUE
+    keep_md: TRUE
+    always_allow_html: yes
+  pdf_document:
+    keep_tex: yes
+    toc: yes
+    toc_depth: 2
+  word_document:
+    toc: yes
+    toc_depth: '2'
+geometry: right=2.5in
+---
+# Introduction 
+
+\par India is the largest democracy in the world. Parliament elections are held every 5 years to elect the Party and in turn Prime Minister of the Country. 
+
+\par The Parliament consists of two houses:Lok Sabha (Lower house) and Rajya Sabha (Upper house)
+
+* Lok Sabha (Lower house) 
+
+Members of Lok Sabha (House of the People) or the lower house of India's Parliament are elected by being voted upon by all adult citizens of India, from a set of candidates who contest in their respective constituencies. Every adult citizen of India can vote only in their constituency. Candidates who win the Lok Sabha elections are called 'Member of Parliament' and hold their seats for five years. Elections take place once in 5 years to elect 545 members for the Lok Sabha.
+
+* Rajya Sabha (Upper house)
+
+The Rajya Sabha, also known as the Council of States, is the upper house of India's Parliament. Candidates are not elected directly by the citizens, but by the Members of Legislative Assemblies and up to 12 can be nominated by the President of India for their contributions to art, literature, science, and social services. Members of the Parliament in Rajya Sabha get a tenure of six years, with one-third of the body facing re-election every two years.
+
+\par The current data set is for Lok Sabha. Depending on its size, each State has different Districts and each District comprises of different Constituency. 
+
+# R Markdown
+
+```R``` Markdown provides an authoring framework for data science. Its design allows it to be converted to HTML, PDF or WORD output formats. To learn basic ```R``` Markdown use the following link: 
+
+* https://www.rstudio.com/wp-content/uploads/2016/03/rmarkdown-cheatsheet-2.0.pdf
+* https://www.rstudio.com/wp-content/uploads/2015/03/rmarkdown-reference.pdf
+
+```knitr``` is an engine for dynamic report generation with ```R```.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message=FALSE, warning = FALSE)
+```
+
+## 2019 Indian general election Candidates and Votes Data
+
+2019 India hold largest election in world, spanning from 11 April to 19 May 2019.
+
+```{r}
+election_result <- read.csv(file = "2019_Results.csv",TRUE, sep = ",", stringsAsFactors = FALSE)
+```
+
+Here the file ```2019_Results.csv``` contains 2019 Indian election data. The available variables include:
+
+* **State**,
+* **Constituency**: a body of voters in a specified area who elect a representative to a legislative body,
+* **O_S_N**,
+* **Candidate**,
+* **Party**,
+* **EVM_Votes:** Electronic Voting Machines,
+* **Postal_Votes:** Eligible people who can not vote in person are allowed to cast their vote via mail,
+* **Total_Votes**,
+* **percent_of_Votes**,
+* **Candidate_Won**.
+
+
+We can see the strcture and dimension of the data set usinf the command: 
+
+```{r}
+str(election_result)
+dim(election_result)
+```
+
+```{r}
+head(election_result,10)
+```
+
+The above code returns the first 10 rows of a data frame in ```R```.
+
+Before cleaning and analyzing the data set, we will include some libraries that needed in ```R``` Markdown.
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(plotly)
+library("RColorBrewer")
+```
+
+where
+
+* ```dplyr``` provides a set of tools for efficiently manipulating datasets in ```R```, it focuses on data frames. 
+* ```ggplot2```  is a data visualization package.
+* ```plotly``` provides online graphing, analytics, and statistics tools for individuals and collaboration, as well as scientific graphing libraries.
+* ```RColorBrewer``` package has a variety of sequential, divergent and qualitative palettes that has color palettes.
+
+## Handling Missing Data
+
+\par It might happen that your dataset is not complete, and when information is not available we call it missing values. In ```R```, missing values are represented by the symbol **NA** (not available). Impossible values (e.g., dividing by zero) are represented by the symbol **NaN** (not a number). 
+
+```{r}
+new_election_result <- na.omit(election_result)
+```
+
+Now we look at the dimension of the new data frame. 
+
+```{r}
+dim(new_election_result)
+```
+
+We can observe that dimension of the orginal data frame and new data frame is same. Thus the given data frame is complete.
+
+# Data Visualization
+
+To make graphs with ```ggplot2```, the data must be in a data frame.
+
+The following plots help to examine how well correlated two variables are: 
+
+## Scatterplot
+The most frequently used plot for data analysis is scatterplot. Whenever you want to understand the nature of relationship between two variables, the first choice is the scatterplot.
+It can be drawn using ```geom_point()```. Additionally, ```geom_smooth``` which draws a smoothing line (based on loess) by default, can be improved to draw the line of best fit by setting ```method='lm'```.
+
+```{r out.width = '50%',fig.align="center"}
+# Scatterplot
+gg <- ggplot(election_result, aes(x=State, y=percent_of_Votes)) + 
+  geom_point(aes(col=State)) + 
+  geom_smooth(se=F) + 
+  labs(y="percent_of_Votes", 
+       x="State", 
+       title=" State Vs percent_of_Votes")+
+  theme_minimal(base_size = 12)
+plot(gg)
+```
+
+## Gitterplot
+Sometimes there may be overlapping points when we use scatterplot. We can make a jitter plot using ```jitter_geom()``` in such cases.
+
+### geom_jitter
+
+ *Example:*
+
+```{r out.width = '50%',fig.align="center"}
+theme_set(theme_bw())  # pre-set the bw theme.
+
+plot_jitter <- ggplot(election_result, aes(x=State, y=percent_of_Votes)) 
+ plot_jitter+ theme(axis.text.x = element_text(size = 6,angle = 90,hjust = 0.5, vjust = 0.5),legend.text = element_text(size=6))+geom_jitter(aes(col=State),width = .5, size=1) + 
+     labs(subtitle="Jittered Points", 
+       y="percent_of_Votes", 
+       x="State", 
+       title=" State Vs percent_of_Votes")
+```
+
+As the name suggests, the overlapping points are randomly jittered around its original position based on a threshold controlled by the ```width``` argument.
+
+The default settings in ggplot work for a simple graph or perhaps one or two variables. However, when we wish to create refined graphs or visualizations that minimize pixels, reduce clutter and eliminate distractions we will need to access the dozens of theme components in ggplot.
+
+To learn more about different theme components in ggplot, we can use the link: (https://www.rdocumentation.org/packages/ggplot2/versions/2.1.0/topics/element_text)
+
+Each of these theme components is something you can manipulate. Often, the ```element_text``` function will be called when you refer to these components in your code.
+
+## Plotly
+
+```{r out.width = '50%',fig.align="center"}
+graph_plotly <- filter(election_result, State == "Andaman & Nicobar Islands")
+p <-ggplot(graph_plotly, aes(x=Party, y=percent_of_Votes, size=percent_of_Votes, text = paste("Candidate:", Candidate),fill=Party)) + 
+  geom_point(alpha = 1,color = "red") 
+ggplotly(p)
+```
+
+Here we have filitered the data frame and stored in the variable ```graph_plotly``` such that the data frame ```graph_plotly``` contains the election result for the State Andaman & Nicobar Islands. 
+
+```{r}
+dim(graph_plotly)
+```
+
+This data frame contains 16 observations and 10 variables.
+
+To rotate the x label's text we can use ```theme``` in the code as follows: 
+
+```{r out.width = '50%',fig.align="center"}
+p1 <-ggplot(graph_plotly, aes(x=Party, y=percent_of_Votes, size=percent_of_Votes, fill= Party, text = paste("Candidate:", Candidate))) + theme(axis.text.x = element_text(size = 4,angle = 90,hjust = 0.5, vjust = 0.5),legend.text = element_text(size=3))+ 
+#theme(legend.position = c(0.9, 0.2))+
+#theme(legend.position="bottom")+
+  theme(legend.background = element_rect(color = "black", 
+   size = 0.1, linetype = "solid"))+
+geom_point(alpha = 1, color = "red") 
+ggplotly(p1)
+```
+
+From the graph we can conclude that Indian National Congress party has highest percentage and the candidate name is Kuldeep Rai Sharma. The party which received lowest percentage of vote is All India Hindustan Congress.
+
+Now, we will try to use ```plotly``` for the original data and how it works. 
+
+```{r out.width = '50%',fig.align="center"}
+plot_j <- ggplot(election_result, aes(x=State, y=percent_of_Votes, size=percent_of_Votes, text = paste("Candidate:", Candidate),text = paste("Party:", Party))) 
+t <- plot_j+ theme(axis.text.x = element_text(size = 6,angle = 90,hjust = 0.5, vjust = 0.5),legend.text = element_text(size=6))+geom_jitter(aes(col=State),width = .5, size=1) + 
+     labs(subtitle="Jittered Points", 
+       y="percent_of_Votes", 
+       x="State", 
+       title=" State Vs percent_of_Votes")
+ggplotly(t)
+```
+
+## Histogram
+
+A histogram is an accurate representation of the distribution of numerical data. It is an estimate of the probability distribution of a continuous variable.
+
+You have two options to make a Histogram With ```ggplot2``` package. You can either use the ```qplot()``` function or ```ggplot()``` function:
+
+### Example: ```qplot()```
+
+```{r out.width = '50%',fig.align="center"}
+qplot(election_result$percent_of_Votes, geom="histogram") 
+```
+
+### Example: ``ggplot()```
+
+```{r out.width = '50%',fig.align="center"}
+ggplot(data=election_result, aes(election_result$percent_of_Votes)) + geom_histogram()
+```
+
+We can observe that both of the commands give same histogram. You can change the binwidth, color, etc. in histogram by specifying required arguments in ```geom_histogram```. 
+
+```{r out.width = '50%',fig.align="center"}
+graph_hist <- ggplot(data=election_result, aes(election_result$percent_of_Votes)) + 
+  geom_histogram(breaks=seq(20, 50, by = 2), 
+                 col="red", 
+                 fill="green", 
+                 binwidth = 0.01) + 
+  labs(title="Histogram for percentage of Votes") +
+  labs(x="Percentage of Votes", y="Count")
+graph_hist
+```
+
+## Boxplot
+
+A box plot displays the five-number summary of a set of data. The five-number summary is the minimum, first quartile, median, third quartile, and maximum.
+
+```geom_boxplot()``` is used to plot Boxplot and with the help of ```ggplotly``` command we can visualize this five-number summary.
+
+The following code gives an example for the usage of boxplot: 
+
+```{r out.width = '50%',fig.align="center"}
+gb <- filter(election_result, State == "Karnataka")
+dim(gb)
+graph_boxplot <- ggplot(gb, aes(x = Party, y = Total_Votes, fill = Party)) +
+  geom_boxplot()+ theme(axis.text.x = element_text(size = 6,angle = 90,hjust = 0.5, vjust = 0.5),legend.text = element_text(size=6))
+ ggplotly(graph_boxplot)
+
+```
+
+Here with the help of ```plotly``` we can click on the boxplot and check for five-number summary.
+
+*Example 2*: 
+
+```{r out.width = '50%',fig.align="center"}
+gb1 <- filter(election_result, State == "Karnataka" & Constituency == "Mandya")
+dim(gb1)
+graph_boxplot <- ggplot(gb1, aes(x = Party, y = percent_of_Votes)) +
+  geom_boxplot(size = 1,width = 0.6)+ coord_flip()+
+  theme(axis.text.x = element_text(size = 6,angle = 90,hjust = 0.5, vjust = 0.5),legend.text = element_text(size=6))
+ ggplotly(graph_boxplot)
+
+```
+
+*Note:* From the the example 2, I was expecting five-summary number in the all the boxplots. It was visible only for the "Independent" Party. Also I have noticed that, to plot side-by-side boxplot both *x* and *y* should be non-numeric. The data frame that I have chosen is not suitable to plot side-by-side boxplot.
+
+## Barplot
+
+A bar plot presents categorical data with rectangular bars with heights or lengths proportional to the values that they represent. The bars can be plotted vertically or horizontally.
+
+*Example:*
+
+```{r out.width = '50%',fig.align="center"}
+graph_barplot <- filter(election_result, State == "Andaman & Nicobar Islands")
+br<-ggplot(graph_barplot, aes(x=Party)) + theme(axis.text.x = element_text(size = 6,angle = 90,hjust = 0.5, vjust = 0.5),legend.text = element_text(size=6))+
+  geom_bar(aes(fill = EVM_Votes)) 
+#br
+ggplotly(br)
+```
+
+*Note* : In this example, when I checked the EVM_Votes for each party, I observed that for "Independent" Party it shows that EVM_Vote is ```NA```. The reason for this may be there are more than one candidate in Independent party. 
+
+## Treemap
+
+In information visualization and computing, treemap is a method for displaying hierarchical data using nested figures, usually rectangles.
+
+```{r out.width = '50%',fig.align="center"}
+library(treemap)
+treemap(election_result, index="percent_of_Votes", vSize="Total_Votes",  
+        vColor="EVM_Votes", mapping=c(-10, 10, 30),  type="value", palette="RdYlGn")
+
+```
+
+## Animation
+
+```{r}
+library(gganimate)
+```
+
+***Example 1***:
+```{r out.width = '50%',fig.align="center"}
+graph_animate <- filter(election_result, State == "Andaman & Nicobar Islands")
+theme_set(theme_bw())  # pre-set the bw theme.
+## ggplot(election_result, aes(x=State, y=Total_Votes)) + 
+ggplot(graph_animate, aes(x=Party, y=Postal_Votes)) +   
+geom_point(aes(col=Party)) + theme(axis.text.x = element_text(size = 6,angle = 90,hjust = 0.5, vjust = 0.5),legend.text = element_text(size=6))+
+  transition_states(Postal_Votes,
+                   transition_length = 2,
+                    state_length = 1)
+```
+
+```{r}
+#devtools::install_github("thomasp85/gganimate", force = TRUE)
+```
+
+```{r}
+#graph_animate <- ggplot(election_result, aes(Party, percent_of_Votes, size = percent_of_Votes, frame = State)) +
+ # geom_point(alpha = 0.7, show.legend = FALSE) +
+#  facet_wrap(~Party) 
+#gganimate(graph_animate, interval = 0.2)
+```
+
+*Comment* : I was interested to work on ```gganimate``` but somehow ended up in the error "could not find function gganimate" even after installing this files.
+
+## Animation using ```plotly```. 
+
+***Example 2***:
+
+```{r}
+plotly_animat2 <- election_result %>%
+  plot_ly(
+    x = ~Party, 
+    y = ~percent_of_Votes, 
+    size = ~percent_of_Votes, 
+    color = ~Party, 
+    frame = ~State, 
+    text = ~Candidate,
+    hoverinfo = "text",
+    type = 'scatter',
+    mode = 'markers'
+  ) 
+plotly_animat2 %>% animation_button(
+    x = 1, xanchor = "right", y = 0, yanchor = "bottom"
+  ) %>% animation_slider(
+    currentvalue = list(prefix = "State ", font = list(color="red"))
+  )
+```
+
+\par The data is recorded Statewise, so the State is assigned to frame, and each point in the scatterplot represents a Party. As long as a ```frame``` variable is provided, an animation is produced with play/pause button(s) and a slider component for controlling the animation. These components can be removed or customized via the ```animation_button()``` and ```animation_slider()``` functions. 
+If frame is a numeric variable (or a character string), frames are always ordered in increasing (alphabetical) order.
+
+***Example 3***:
+
+\par Now I explain the same with another example. In this case I have filitered the original data such that it contains the details only for Andaman & Nicobar Islands, Andhra Pradesh and  Jammu&Kashmir. 
+
+```{r}
+election_groupby <- election_result %>%
+  filter(State=="Andaman & Nicobar Islands" | State == "Andhra Pradesh" | State == "Jammu & Kashmir")
+dim(election_groupby)
+```
+
+```{r}
+plotly_animat3 <- election_groupby %>%
+  plot_ly(
+    x = ~Party, 
+    y = ~percent_of_Votes, 
+    size = ~percent_of_Votes, 
+    color = ~Party, 
+    frame = ~State, 
+    text = ~Candidate,
+    hoverinfo = "text",
+    type = 'scatter',
+    mode = 'markers'
+  ) 
+plotly_animat3 %>% animation_button(
+    x = 1, xanchor = "right", y = 0, yanchor = "bottom"
+  ) %>% animation_slider(
+    currentvalue = list(prefix = "State ", font = list(color="red"))
+  )
+```
+
+To read more on animations see The Plotly Book: https://plotly-r.com/animating-views.html.
+
+### General comment:
+
+This data set contains only the parties that lost in the election. The visualisation would be more attractive if the data set contains the candidates that won and lost. It will also be helpful if there is data regarding how women or minorities or different age groups voted in the election. 
+
+The reason for choosing the data is that I am from India and I am interested in knowing political news about my Country. 
+
+# Acknowledgement
+
+Source of data is http://results.eci.gov.in/pc/en/partywise/index.htm Various reports and graphs created using this data are available on www.rachittechnology.com.
+
+
